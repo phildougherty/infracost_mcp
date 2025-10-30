@@ -13,9 +13,9 @@ MCP server that lets Claude interact with Infracost for Terraform cost estimatio
 
 ## Prerequisites
 
-- Node.js 18+
-- Infracost CLI ([install guide](https://www.infracost.io/docs/))
-- Infracost service token (get from [dashboard](https://dashboard.infracost.io))
+- Node.js >= 18
+- [Infracost CLI](https://www.infracost.io/docs/) (for cost estimation tools)
+- Infracost service token from [Infracost Cloud](https://dashboard.infracost.io) > Org Settings > API tokens
 
 ## Installation
 
@@ -26,12 +26,16 @@ npm install
 npm run build
 ```
 
-Create a `.env` file:
+## Configuration
 
-```bash
+Create a `.env` file in the project root:
+
+```env
 INFRACOST_SERVICE_TOKEN=ics_v1_your_token_here
 INFRACOST_ORG=your_org_slug
 ```
+
+Get your service token from the [Infracost Cloud dashboard](https://dashboard.infracost.io) under Org Settings > API tokens.
 
 ## Usage
 
@@ -41,59 +45,189 @@ The repo includes `.mcp.json` and `.claude/agents/` so it works out of the box -
 
 ### With Claude Desktop
 
-Add to your config file (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+Add to your Claude Desktop config file:
+
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "infracost": {
       "command": "node",
-      "args": ["/absolute/path/to/infracost_mcp/dist/index.js"]
+      "args": ["/absolute/path/to/infracost_mcp/dist/index.js"],
+      "env": {
+        "INFRACOST_SERVICE_TOKEN": "ics_v1_your_token"
+      }
     }
   }
 }
 ```
 
+Restart Claude Desktop after updating the config.
+
 ## Examples
+
+### Natural Language Queries
 
 Ask Claude things like:
 
+**Cost Estimation:**
 - "What's the monthly cost of my Terraform in ./infrastructure?"
-- "Compare costs between staging and prod configs"
+- "Show me a cost breakdown for ./terraform/prod in table format"
+- "Generate an HTML cost report and save it to report.html"
+- "Upload the cost estimate from infracost.json to Infracost Cloud"
+
+**Cost Comparison:**
+- "Compare costs between ./staging and ./prod configs"
+- "What's the cost difference if I switch from t3.medium to t3.large?"
+- "Show me cost changes between the current branch and main"
+
+**Tagging Policies:**
 - "Create a tagging policy that requires Environment and Owner tags"
+- "List all tagging policies for my organization"
+- "Add a tagging policy that allows only 'dev', 'staging', 'prod' for Environment tags"
+- "Update the tagging policy to also require a CostCenter tag"
+
+**Cost Guardrails:**
 - "Set up a guardrail that blocks PRs adding more than $200/month"
-- "Generate an HTML cost report"
+- "Create a guardrail that warns when total infrastructure cost exceeds $10k/month"
+- "Block PRs with cost increases over 25% for my production repo"
+- "List all active guardrails"
+
+**Pull Request Integration:**
+- "Post the cost estimate from infracost.json to GitHub PR #123 in owner/repo"
+- "Add a cost comment to the current GitLab merge request"
+
+### JSON Examples
+
+**Generate cost breakdown:**
+```json
+{
+  "path": "./terraform/prod",
+  "format": "json",
+  "outFile": "cost-estimate.json"
+}
+```
+
+**Compare configurations:**
+```json
+{
+  "path": "./terraform/current",
+  "compareTo": "./terraform/baseline",
+  "format": "diff"
+}
+```
+
+**Create tagging policy:**
+```json
+{
+  "name": "Required tags policy",
+  "prComment": true,
+  "blockPr": true,
+  "tags": [
+    {
+      "key": "Environment",
+      "mandatory": true,
+      "valueType": "LIST",
+      "allowedValues": ["dev", "staging", "prod"]
+    },
+    {
+      "key": "Owner",
+      "mandatory": true,
+      "valueType": "REGEX",
+      "allowedRegex": "^[a-z]+\\.[a-z]+@company\\.com$"
+    }
+  ]
+}
+```
+
+**Create cost guardrail:**
+```json
+{
+  "name": "Production cost limit",
+  "scope": {
+    "type": "REPO",
+    "repositories": ["myorg/prod-infrastructure"]
+  },
+  "increasePercentThreshold": 10,
+  "totalThreshold": 50000,
+  "blockPullRequest": true,
+  "commentOnPullRequest": true
+}
+```
+
+See [docs/EXAMPLES.md](docs/EXAMPLES.md) for more detailed examples.
 
 ## Available Tools
 
-**Cost Estimation:**
-- `infracost_breakdown` - Generate cost breakdown
-- `infracost_diff` - Compare two configurations
-- `infracost_output` - Format/combine outputs
-- `infracost_upload` - Upload to Infracost Cloud
-- `infracost_comment` - Post to PRs
+### CLI Tools (require Infracost CLI)
 
-**Cloud API (requires service token):**
-- Tagging policies: list, get, create, update, delete
-- Guardrails: list, get, create, update, delete
-- Custom properties: upload CSV data
+- `infracost_breakdown` - Generate cost breakdown for Terraform infrastructure
+- `infracost_diff` - Show cost differences between two configurations
+- `infracost_output` - Combine and format Infracost JSON files
+- `infracost_upload` - Upload cost estimates to Infracost Cloud
+- `infracost_comment` - Post cost comments to pull requests
 
-See [docs/README.md](docs/README.md) for detailed tool parameters and [docs/EXAMPLES.md](docs/EXAMPLES.md) for JSON examples.
+### Cloud API Tools (require service token)
+
+**Tagging Policies:**
+- `infracost_cloud_list_tagging_policies` - List all tagging policies
+- `infracost_cloud_get_tagging_policy` - Get a specific tagging policy
+- `infracost_cloud_create_tagging_policy` - Create a new tagging policy
+- `infracost_cloud_update_tagging_policy` - Update an existing tagging policy
+- `infracost_cloud_delete_tagging_policy` - Delete a tagging policy
+
+**Guardrails:**
+- `infracost_cloud_list_guardrails` - List all guardrails
+- `infracost_cloud_get_guardrail` - Get a specific guardrail
+- `infracost_cloud_create_guardrail` - Create a cost guardrail
+- `infracost_cloud_update_guardrail` - Update an existing guardrail
+- `infracost_cloud_delete_guardrail` - Delete a guardrail
+
+**Custom Properties:**
+- `infracost_cloud_upload_custom_properties` - Upload custom property values via CSV
 
 ## Project Structure
 
-- `src/` - TypeScript source
-- `dist/` - Compiled output (created by `npm run build`)
-- `docs/` - Additional documentation
-- `.claude/` - Claude Code configuration (optional)
+- `src/` - TypeScript source code
+- `dist/` - Compiled JavaScript output (created by `npm run build`)
+- `docs/` - Additional documentation and examples
+- `.claude/` - Claude Code agent configuration
+
+## Development
+
+```bash
+npm run build   # Compile TypeScript
+npm run watch   # Watch mode for development
+npm start       # Run the MCP server
+```
 
 ## Troubleshooting
 
-**Server not working:** Verify Infracost CLI is installed (`infracost --version`) and token is set correctly in config.
+**CLI tools not working:**
+- Verify Infracost CLI is installed: `infracost --version`
+- Ensure `INFRACOST_SERVICE_TOKEN` is set correctly
 
-**Claude not using tools:** Restart Claude after config changes. Make sure path to `dist/index.js` is absolute.
+**Cloud API errors:**
+- Check that your service token has the necessary permissions
+- Verify the organization slug is correct
 
-**No resources found:** Run `terraform init` in your Terraform directory first.
+**Server not connecting:**
+- Ensure the path to `dist/index.js` is absolute in your MCP config
+- Restart Claude Desktop after making config changes
+- Check that `npm run build` completed successfully
+
+**No resources found:**
+- Run `terraform init` in your Terraform directory first
+- Verify the path to your Terraform files is correct
+
+## Resources
+
+- [Infracost Documentation](https://www.infracost.io/docs/)
+- [Infracost Cloud API](https://www.infracost.io/docs/infracost_cloud/api/)
+- [Model Context Protocol](https://modelcontextprotocol.io)
 
 ## License
 
