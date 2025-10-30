@@ -1,0 +1,9 @@
+environment        = "prod"
+region             = "us-east-1"
+instance_type      = "t3.xlarge"
+root_volume_size   = 100
+db_instance_class  = "db.r6g.xlarge"
+db_storage_gb      = 500
+cache_node_type    = "cache.r6g.large"
+cache_node_count   = 3
+log_retention_days = 30

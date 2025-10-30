@@ -1,0 +1,9 @@
+environment        = "dev"
+region             = "us-east-1"
+instance_type      = "t3.small"
+root_volume_size   = 20
+db_instance_class  = "db.t3.micro"
+db_storage_gb      = 20
+cache_node_type    = "cache.t3.micro"
+cache_node_count   = 1
+log_retention_days = 7

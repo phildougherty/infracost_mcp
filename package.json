@@ -1,0 +1,37 @@
+{
+  "name": "infracost-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for Infracost.io - cost estimation for Terraform",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "infracost-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "start": "node dist/index.js",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "infracost",
+    "terraform",
+    "cost-estimation",
+    "infrastructure"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
