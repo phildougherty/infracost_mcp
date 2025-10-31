@@ -130,7 +130,7 @@ export const CreateGuardrailSchema = z.object({
     .optional()
     .describe('Threshold for total cost (monthly dollar amount)'),
   message: z.string().optional().describe('Custom message to display when threshold is exceeded'),
-  webhookUrl: z.string().optional().describe('Webhook URL to notify when threshold is exceeded'),
+  webhookUrl: z.string().default('').describe('Webhook URL to notify when threshold is exceeded (defaults to empty string if not needed)'),
   blockPullRequest: z.boolean().optional().describe('Whether to block PR when threshold is exceeded'),
   commentOnPullRequest: z
     .boolean()
@@ -247,7 +247,7 @@ export const UpdateGuardrailSchema = z.object({
     .optional()
     .describe('Threshold for total cost (monthly dollar amount)'),
   message: z.string().optional().describe('Custom message to display when threshold is exceeded'),
-  webhookUrl: z.string().optional().describe('Webhook URL to notify when threshold is exceeded'),
+  webhookUrl: z.string().default('').describe('Webhook URL to notify when threshold is exceeded (defaults to empty string if not needed)'),
   blockPullRequest: z.boolean().optional().describe('Whether to block PR when threshold is exceeded'),
   commentOnPullRequest: z
     .boolean()
@@ -467,17 +467,24 @@ export class InfracostTools {
       filters.projects = { include: scope.projects };
     }
 
-    const apiRequest = {
+    const apiRequest: any = {
       ...rest,
       scope: scopeString,
       filters: Object.keys(filters).length > 0 ? filters : undefined,
-      webhookUrl: webhookUrl || '',
       prComment: commentOnPullRequest,
       blockPr: blockPullRequest,
-      emailRecipientOrgMemberIds,
-      mailingListEmails,
-      msTeamsEmails,
+      webhookUrl, // Schema defaults to empty string if not provided
     };
+
+    if (emailRecipientOrgMemberIds) {
+      apiRequest.emailRecipientOrgMemberIds = emailRecipientOrgMemberIds;
+    }
+    if (mailingListEmails) {
+      apiRequest.mailingListEmails = mailingListEmails;
+    }
+    if (msTeamsEmails) {
+      apiRequest.msTeamsEmails = msTeamsEmails;
+    }
 
     const result = await this.cloudApiClient.createGuardrail(orgSlug, apiRequest);
 

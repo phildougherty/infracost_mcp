@@ -145,7 +145,7 @@ export interface CreateGuardrailRequest {
   increasePercentThreshold?: number;
   totalThreshold?: number;
   message?: string;
-  webhookUrl?: string;
+  webhookUrl: string; // Required by API (use empty string if not needed)
   prComment?: boolean;
   blockPr?: boolean;
   emailRecipientOrgMemberIds?: string[];
