@@ -1,0 +1,3 @@
+# Exclude example and generated files from GitHub language statistics
+examples/** linguist-documentation
+package-lock.json linguist-generated=true
