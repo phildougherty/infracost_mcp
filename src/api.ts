@@ -409,12 +409,29 @@ export class InfracostCloudAPIClient {
         };
       }
 
-      const data = await response.json();
+      // Handle 204 No Content response (common for uploads)
+      if (response.status === 204) {
+        return {
+          success: true,
+          output: 'Custom properties uploaded successfully',
+        };
+      }
 
+      // Try to parse JSON response if there is content
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        return {
+          success: true,
+          output: JSON.stringify(data, null, 2),
+          data,
+        };
+      }
+
+      // Fallback for non-JSON responses
       return {
         success: true,
-        output: JSON.stringify(data, null, 2),
-        data,
+        output: 'Custom properties uploaded successfully',
       };
     } catch (error) {
       return {
