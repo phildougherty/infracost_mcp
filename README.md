@@ -2,6 +2,10 @@
 
 MCP server that lets Claude interact with Infracost for Terraform cost estimation and cloud governance. Works with Claude Desktop and Claude Code.
 
+<a href="https://glama.ai/mcp/servers/@phildougherty/infracost_mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@phildougherty/infracost_mcp/badge" alt="Infracost Server MCP server" />
+</a>
+
 ## What it does
 
 - Generate cost breakdowns for Terraform configurations
